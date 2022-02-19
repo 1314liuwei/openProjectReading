@@ -14,6 +14,7 @@ import (
 )
 
 // Interface is a struct for concurrent-safe operation for type interface{}.
+// Interface 实际上就是对 atomic.Value 的封装
 type Interface struct {
 	value atomic.Value
 }
@@ -59,6 +60,7 @@ func (v *Interface) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements the interface UnmarshalJSON for json.Unmarshal.
 func (v *Interface) UnmarshalJSON(b []byte) error {
 	var i interface{}
+	// 避免 float64 精度缺失的问题，详细解答可见：https://juejin.cn/post/7064954912810991653
 	if err := json.UnmarshalUseNumber(b, &i); err != nil {
 		return err
 	}
@@ -67,6 +69,7 @@ func (v *Interface) UnmarshalJSON(b []byte) error {
 }
 
 // UnmarshalValue is an interface implement which sets any type of value for `v`.
+// TODO： 未看懂设计
 func (v *Interface) UnmarshalValue(value interface{}) error {
 	v.Set(value)
 	return nil

@@ -9,7 +9,7 @@
 - 重要的部分在博客笔记中记录
 
 正在阅读的项目：
-- [gin](https://github.com/gin-gonic/gin)
+- [goframe](https://goframe.org/#all-updates)
 
 已完成的项目：
 - 暂无

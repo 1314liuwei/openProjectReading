@@ -17,6 +17,7 @@ import (
 )
 
 // Var is an universal variable type implementer.
+// Var 可以使用并发安全模式和普通模式；并发安全模式下 value 使用的是 atomic。Value 类型
 type Var struct {
 	value interface{} // Underlying value.
 	safe  bool        // Concurrent safe or not.
@@ -25,13 +26,16 @@ type Var struct {
 // New creates and returns a new Var with given `value`.
 // The optional parameter `safe` specifies whether Var is used in concurrent-safety,
 // which is false in default.
+// safe 。。。bool 这种书写方式实现了类似于 Python 的可选参数效果
 func New(value interface{}, safe ...bool) *Var {
+	// 并发安全
 	if len(safe) > 0 && !safe[0] {
 		return &Var{
 			value: gtype.NewInterface(value),
 			safe:  true,
 		}
 	}
+	// 普通模式
 	return &Var{
 		value: value,
 	}

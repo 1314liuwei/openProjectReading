@@ -109,6 +109,7 @@ func (c *Client) DoRequest(ctx context.Context, method, url string, data ...inte
 			handlerIndex: -1,
 		})
 		req = req.WithContext(ctx)
+		// 执行所有中间件再进行请求
 		resp, err = c.Next(req)
 	} else {
 		resp, err = c.callRequest(req)
@@ -122,9 +123,12 @@ func (c *Client) prepareRequest(ctx context.Context, method, url string, data ..
 	if len(c.prefix) > 0 {
 		url = c.prefix + gstr.Trim(url)
 	}
+	// 判断 url 是否以 http 开头
 	if !gstr.ContainsI(url, httpProtocolName) {
 		url = httpProtocolName + `://` + url
 	}
+
+	// 拼接参数
 	var params string
 	if len(data) > 0 {
 		switch c.header[httpHeaderContentType] {
@@ -187,8 +191,10 @@ func (c *Client) prepareRequest(ctx context.Context, method, url string, data ..
 				buffer = bytes.NewBuffer(nil)
 				writer = multipart.NewWriter(buffer)
 			)
+			// 参数切割
 			for _, item := range strings.Split(params, "&") {
 				array := strings.Split(item, "=")
+				// 读取文件内容
 				if len(array[1]) > 6 && strings.Compare(array[1][0:6], httpParamFileHolder) == 0 {
 					path := array[1][6:]
 					if !gfile.Exists(path) {
@@ -309,12 +315,14 @@ func (c *Client) callRequest(req *http.Request) (resp *Response, err error) {
 	resp.requestBody = reqBodyContent
 	req.Body = utils.NewReadCloser(reqBodyContent, false)
 	for {
+		// 发送 HTTP 请求
 		if resp.Response, err = c.Do(req); err != nil {
 			err = gerror.Wrapf(err, `request failed`)
 			// The response might not be nil when err != nil.
 			if resp.Response != nil {
 				_ = resp.Response.Body.Close()
 			}
+			// 重新尝试请求
 			if c.retryCount > 0 {
 				c.retryCount--
 				time.Sleep(c.retryInterval)

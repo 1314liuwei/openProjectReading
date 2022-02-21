@@ -70,6 +70,7 @@ func New() *Client {
 				TLSClientConfig: &tls.Config{
 					InsecureSkipVerify: true,
 				},
+				// 禁用 HTTP 长连接
 				DisableKeepAlives: true,
 			},
 		},

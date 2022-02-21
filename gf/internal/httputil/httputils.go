@@ -53,6 +53,7 @@ func BuildParams(params interface{}, noUrlEncode ...bool) (encodedParamStr strin
 		}
 	}
 	s := ""
+	// 构造 GET 或者 form 的参数形式
 	for k, v := range m {
 		if len(encodedParamStr) > 0 {
 			encodedParamStr += "&"

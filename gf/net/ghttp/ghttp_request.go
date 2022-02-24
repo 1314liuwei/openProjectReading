@@ -177,6 +177,7 @@ func (r *Request) IsFileRequest() bool {
 }
 
 // IsAjaxRequest checks and returns whether current request is an AJAX request.
+// 根据请求头判断是否是 AJAX 请求
 func (r *Request) IsAjaxRequest() bool {
 	return strings.EqualFold(r.Header.Get("X-Requested-With"), "XMLHttpRequest")
 }

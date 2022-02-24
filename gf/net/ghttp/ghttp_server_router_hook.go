@@ -15,6 +15,7 @@ import (
 )
 
 // BindHookHandler registers handler for specified hook.
+// 对 HTTP 请求做前置操作，例如在开发模式下设置 Cache-Control 字段禁止浏览器缓存
 func (s *Server) BindHookHandler(pattern string, hook string, handler HandlerFunc) {
 	s.doBindHookHandler(context.TODO(), doBindHookHandlerInput{
 		Prefix:   "",

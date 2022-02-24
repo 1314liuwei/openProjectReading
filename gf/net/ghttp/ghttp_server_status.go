@@ -36,6 +36,7 @@ func (s *Server) statusHandlerKey(status int, domain string) string {
 }
 
 // BindStatusHandler registers handler for given status code.
+// 根据 http 状态码设置相应的处理页面，例如当出现404时导向到指定页面
 func (s *Server) BindStatusHandler(status int, handler HandlerFunc) {
 	s.addStatusHandler(s.statusHandlerKey(status, DefaultDomainName), handler)
 }

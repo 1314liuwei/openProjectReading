@@ -94,6 +94,8 @@ func GetServer(name ...interface{}) *Server {
 	if len(name) > 0 && name[0] != "" {
 		serverName = gconv.String(name[0])
 	}
+
+	// 通过map表实现单例模式
 	if s := serverMapping.Get(serverName); s != nil {
 		return s.(*Server)
 	}

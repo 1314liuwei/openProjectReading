@@ -32,7 +32,10 @@ func Server(name ...interface{}) *ghttp.Server {
 	if len(name) > 0 && name[0] != "" {
 		instanceName = gconv.String(name[0])
 	}
+
+	// GetOrSetFuncLock 会维持一张 map 表，从而实现单例模式
 	return localInstances.GetOrSetFuncLock(instanceKey, func() interface{} {
+		// 根据名字获取 httpServer 实例，内部实现了单例模式
 		s := ghttp.GetServer(instanceName)
 		// It ignores returned error to avoid file no found error while it's not necessary.
 		var (
@@ -40,6 +43,7 @@ func Server(name ...interface{}) *ghttp.Server {
 			serverLoggerConfigMap map[string]interface{}
 			configNodeName        = configNodeNameServer
 		)
+		// 获取 server 配置文件
 		if configData, _ := Config().Data(ctx); len(configData) > 0 {
 			if v, _ := gutil.MapPossibleItemByKey(configData, configNodeNameServer); v != "" {
 				configNodeName = v

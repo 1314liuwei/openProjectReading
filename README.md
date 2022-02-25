@@ -13,6 +13,7 @@
 
 已完成的项目：
 - [gfast](https://github.com/tiger1103/gfast)
+- [gmanager](https://github.com/goflyfox/gmanager)
 
 大家一起加油吧！
 

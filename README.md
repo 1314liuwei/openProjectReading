@@ -12,7 +12,7 @@
 - [goframe](https://goframe.org/#all-updates)
 
 已完成的项目：
-- 暂无
+- [gfast](https://github.com/tiger1103/gfast)
 
 大家一起加油吧！
 

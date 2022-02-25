@@ -107,6 +107,7 @@ func (s *pluginsManage) ChangeStatus(ctx context.Context, req *dao.PluginsManage
 //同步插件商城中的插件
 func (s *pluginsManage) syncFromStore(req *dao.PluginsManageSearchReq) (total, page int, csPluginList []*dao.CsPluginListRes, err error) {
 	storeUrl := g.Cfg().GetString("plugin.serverUrl") + "/codeStore/pluginList"
+	// 分配一个ghttp.ClientResponse类型的空指针给 res, 和 var res *ghttp.ClientResponse 作用相同
 	res := (*ghttp.ClientResponse)(nil)
 	if req.PageNum == 0 {
 		req.PageNum = 1

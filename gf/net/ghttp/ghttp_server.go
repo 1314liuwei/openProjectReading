@@ -50,6 +50,7 @@ func serverProcessInit() {
 	var (
 		ctx = context.TODO()
 	)
+	// 判断是否已经初始化
 	if !serverProcessInitialized.Cas(false, true) {
 		return
 	}

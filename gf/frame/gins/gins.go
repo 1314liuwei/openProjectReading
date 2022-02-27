@@ -13,6 +13,7 @@ import (
 
 var (
 	// localInstances is the instance map for common used components.
+	// 用于实现单例模式
 	localInstances = gmap.NewStrAnyMap(true)
 )
 

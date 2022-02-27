@@ -2,17 +2,22 @@ package main
 
 import (
 	"fmt"
-	"github.com/gogf/gf/net/ghttp"
+	"sync"
+	"sync/atomic"
 )
 
-type Demo struct {
-	Name string
-	Age  int
-}
-
 func main() {
-	res := (*ghttp.ClientResponse)(nil)
-	var res1 *ghttp.ClientResponse
+	var n int32
+	var wg sync.WaitGroup
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func() {
+			n++
+			//atomic.AddInt32(&n, 1)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 
-	fmt.Println(res == res1)
+	fmt.Println(atomic.LoadInt32(&n)) // 1000
 }

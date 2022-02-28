@@ -54,14 +54,17 @@ var (
 // RestartAllServer restarts all the servers of the process.
 // The optional parameter `newExeFilePath` specifies the new binary file for creating process.
 func RestartAllServer(ctx context.Context, newExeFilePath ...string) error {
+	// 判断是否启用平滑重启功能
 	if !gracefulEnabled {
 		return gerror.NewCode(gcode.CodeInvalidOperation, "graceful reload feature is disabled")
 	}
 	serverActionLocker.Lock()
 	defer serverActionLocker.Unlock()
+	// 检查当前进程状态
 	if err := checkProcessStatus(); err != nil {
 		return err
 	}
+	// 检测操作频率，如果两次操作时间过短则报错
 	if err := checkActionFrequency(); err != nil {
 		return err
 	}

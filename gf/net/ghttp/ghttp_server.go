@@ -264,12 +264,14 @@ func (s *Server) Start() error {
 	// 子进程通知父进程退出
 	if gproc.IsChild() {
 		gtimer.SetTimeout(ctx, time.Duration(s.config.GracefulTimeout)*time.Second, func(ctx context.Context) {
-			// 发送退出信号
+			// 发送退出信号，如果开启平滑重启功能，则会结束父进程
+			// serverProcessInit 中开辟 goroutine 执行的 handleProcessMessage() 会监听此信号
 			if err := gproc.Send(gproc.PPid(), []byte("exit"), adminGProcCommGroup); err != nil {
 				intlog.Error(ctx, "server error in process communication:", err)
 			}
 		})
 	}
+	// 初始化 OpenApi
 	s.initOpenApi()
 	// 输出路由
 	s.dumpRouterMap()
@@ -447,6 +449,7 @@ func (s *Server) Run() {
 		s.Logger().Fatalf(ctx, `%+v`, err)
 	}
 	// Blocking using channel.
+	// 阻塞进程, 等待 server 关闭
 	<-s.closeChan
 	// Remove plugins.
 	if len(s.plugins) > 0 {
@@ -461,7 +464,8 @@ func (s *Server) Run() {
 }
 
 // Wait blocks to wait for all servers done.
-// It's commonly used in multiple servers situation.
+// It's commonly used in multiple servers' situation.
+// 和 Start 搭配使用
 func Wait() {
 	var (
 		ctx = context.TODO()
@@ -586,6 +590,7 @@ func (s *Server) startServer(fdMap listenerFdMap) {
 			}
 			// If all the underlying servers' shutdown, the process exits.
 			if s.serverCount.Add(-1) < 1 {
+				// 向 closeChan 发送消息关闭 server
 				s.closeChan <- struct{}{}
 				if serverRunning.Add(-1) < 1 {
 					serverMapping.Remove(s.name)

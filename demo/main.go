@@ -1,23 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"sync"
-	"sync/atomic"
+	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/os/gfile"
 )
 
 func main() {
-	var n int32
-	var wg sync.WaitGroup
-	for i := 0; i < 1000; i++ {
-		wg.Add(1)
-		go func() {
-			n++
-			//atomic.AddInt32(&n, 1)
-			wg.Done()
-		}()
-	}
-	wg.Wait()
-
-	fmt.Println(atomic.LoadInt32(&n)) // 1000
+	g.Dump(gfile.MainPkgPath())
 }

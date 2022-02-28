@@ -58,6 +58,7 @@ func (v *Bool) Val() bool {
 }
 
 // Cas executes the compare-and-swap operation for value.
+// 如果当前值和new值不等，则返回true，否则返回false
 func (v *Bool) Cas(old, new bool) (swapped bool) {
 	var oldInt32, newInt32 int32
 	if old {

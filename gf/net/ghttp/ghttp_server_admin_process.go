@@ -246,12 +246,14 @@ func restartWebServers(ctx context.Context, signal string, newExeFilePath ...str
 // shutdownWebServers shuts down all servers.
 func shutdownWebServers(ctx context.Context, signal ...string) {
 	serverProcessStatus.Set(adminActionShuttingDown)
+	// 有无信号名字
 	if len(signal) > 0 {
 		glog.Printf(ctx, "%d: server shutting down by signal: %s", gproc.Pid(), signal[0])
 		forceCloseWebServers(ctx)
 		allDoneChan <- struct{}{}
 	} else {
 		glog.Printf(ctx, "%d: server shutting down by api", gproc.Pid())
+		// 一秒后结束所有服务
 		gtimer.SetTimeout(ctx, time.Second, func(ctx context.Context) {
 			forceCloseWebServers(ctx)
 			allDoneChan <- struct{}{}
@@ -277,6 +279,7 @@ func shutdownWebServersGracefully(ctx context.Context, signal ...string) {
 
 // forceCloseWebServers forced shuts down all servers.
 func forceCloseWebServers(ctx context.Context) {
+	// 关闭所有服务
 	serverMapping.RLockFunc(func(m map[string]interface{}) {
 		for _, v := range m {
 			for _, s := range v.(*Server).servers {
@@ -293,6 +296,7 @@ func handleProcessMessage() {
 		ctx = context.TODO()
 	)
 	for {
+		// 接收其他进程的消息
 		if msg := gproc.Receive(adminGProcCommGroup); msg != nil {
 			if bytes.EqualFold(msg.Data, []byte("exit")) {
 				intlog.Printf(ctx, "%d: process message: exit", gproc.Pid())

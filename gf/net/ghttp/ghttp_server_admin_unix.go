@@ -43,17 +43,20 @@ func handleProcessSignal() {
 		switch sig {
 		// Shutdown the servers.
 		case syscall.SIGINT, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGABRT:
+			// 退出服务: 直接关闭所有连接
 			shutdownWebServers(ctx, sig.String())
 			return
 
 		// Shutdown the servers gracefully.
 		// Especially from K8S when running server in POD.
 		case syscall.SIGTERM:
+			// 优雅退出: 通知所有连接进行 shutdown 操作
 			shutdownWebServersGracefully(ctx, sig.String())
 			return
 
 		// Restart the servers.
 		case syscall.SIGUSR1:
+			// 重启服务
 			if err := restartWebServers(ctx, sig.String()); err != nil {
 				intlog.Error(ctx, err)
 			}

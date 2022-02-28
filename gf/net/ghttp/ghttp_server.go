@@ -50,12 +50,14 @@ func serverProcessInit() {
 	var (
 		ctx = context.TODO()
 	)
-	// 判断是否已经初始化
+
+	// 判断服务进程是否已经初始化
 	if !serverProcessInitialized.Cas(false, true) {
 		return
 	}
 	// This means it is a restart server, it should kill its parent before starting its listening,
 	// to avoid duplicated port listening in two processes.
+	// 如果环境变量里设置允许重启，那么会杀死原来的进程
 	if !genv.Get(adminActionRestartEnvKey).IsEmpty() {
 		if p, err := os.FindProcess(gproc.PPid()); err == nil {
 			if err = p.Kill(); err != nil {
@@ -70,10 +72,12 @@ func serverProcessInit() {
 	}
 
 	// Signal handler.
+	// 开辟 goroutine 处理进程信号
 	go handleProcessSignal()
 
 	// Process message handler.
 	// It's enabled only graceful feature is enabled.
+	// 是否开启平滑重启功能
 	if gracefulEnabled {
 		intlog.Printf(ctx, "%d: graceful reload feature is enabled", gproc.Pid())
 		go handleProcessMessage()
@@ -117,6 +121,7 @@ func GetServer(name ...interface{}) *Server {
 		panic(gerror.WrapCode(gcode.CodeInvalidConfiguration, err, ""))
 	}
 	// Record the server to internal server mapping by name.
+	// 将服务加入 map 表
 	serverMapping.Set(serverName, s)
 	// It enables OpenTelemetry for server in default.
 	s.Use(internalMiddlewareServerTracing)
@@ -125,12 +130,14 @@ func GetServer(name ...interface{}) *Server {
 
 // Start starts listening on configured port.
 // This function does not block the process, you can use function Wait blocking the process.
+// 非阻塞
 func (s *Server) Start() error {
 	var (
 		ctx = context.TODO()
 	)
 
 	// Swagger UI.
+	// 注册 Swagger UI 路由
 	if s.config.SwaggerPath != "" {
 		swaggerui.Init()
 		s.AddStaticPath(s.config.SwaggerPath, swaggerUIPackedPath)
@@ -144,6 +151,7 @@ func (s *Server) Start() error {
 	}
 
 	// OpenApi specification json producing handler.
+	// 注册 OpenApi 路由
 	if s.config.OpenApiPath != "" {
 		s.BindHandler(s.config.OpenApiPath, s.openapiSpec)
 		s.Logger().Debugf(
@@ -166,23 +174,29 @@ func (s *Server) Start() error {
 		}
 	}
 	// Register group routes.
+	// 检查所有路由
 	s.handlePreBindItems(ctx)
 
 	// Server process initialization, which can only be initialized once.
+	// 服务初始化，只能初始化一次
 	serverProcessInit()
 
 	// Server can only be run once.
+	// 服务只能运行一次
 	if s.Status() == ServerStatusRunning {
 		return gerror.NewCode(gcode.CodeInvalidOperation, "server is already running")
 	}
 
 	// Logging path setting check.
+	// 初始化日志记录器
 	if s.config.LogPath != "" && s.config.LogPath != s.config.Logger.GetPath() {
 		if err := s.config.Logger.SetPath(s.config.LogPath); err != nil {
 			return err
 		}
 	}
+
 	// Default session storage.
+	// 初始化 Session 存储器
 	if s.config.SessionStorage == nil {
 		path := ""
 		if s.config.SessionPath != "" {
@@ -202,6 +216,7 @@ func (s *Server) Start() error {
 	)
 
 	// PProf feature.
+	// 是否开启 PProf
 	if s.config.PProfEnabled {
 		s.EnablePProf(s.config.PProfPattern)
 	}
@@ -218,6 +233,7 @@ func (s *Server) Start() error {
 		}
 	}
 	// Check the group routes again.
+	// 再次检查路由
 	s.handlePreBindItems(ctx)
 
 	// If there's no route registered  and no static service enabled,
@@ -239,19 +255,23 @@ func (s *Server) Start() error {
 			reloaded = true
 		}
 	}
+	// 运行服务
 	if !reloaded {
 		s.startServer(nil)
 	}
 
 	// If this is a child process, it then notifies its parent exit.
+	// 子进程通知父进程退出
 	if gproc.IsChild() {
 		gtimer.SetTimeout(ctx, time.Duration(s.config.GracefulTimeout)*time.Second, func(ctx context.Context) {
+			// 发送退出信号
 			if err := gproc.Send(gproc.PPid(), []byte("exit"), adminGProcCommGroup); err != nil {
 				intlog.Error(ctx, "server error in process communication:", err)
 			}
 		})
 	}
 	s.initOpenApi()
+	// 输出路由
 	s.dumpRouterMap()
 	return nil
 }
@@ -471,6 +491,7 @@ func (s *Server) startServer(fdMap listenerFdMap) {
 	)
 	// HTTPS
 	if s.config.TLSConfig != nil || (s.config.HTTPSCertPath != "" && s.config.HTTPSKeyPath != "") {
+		// 设置 HTTPS 的绑定端口和地址
 		if len(s.config.HTTPSAddr) == 0 {
 			if len(s.config.Address) > 0 {
 				s.config.HTTPSAddr = s.config.Address
@@ -504,6 +525,7 @@ func (s *Server) startServer(fdMap listenerFdMap) {
 				}
 			}
 			if fd > 0 {
+				// 绑定文件描述符
 				s.servers = append(s.servers, s.newGracefulServer(itemFunc, fd))
 			} else {
 				s.servers = append(s.servers, s.newGracefulServer(itemFunc))
@@ -545,11 +567,14 @@ func (s *Server) startServer(fdMap listenerFdMap) {
 		}
 	}
 	// Start listening asynchronously.
+	// 设置状态为 Running
 	serverRunning.Add(1)
 	for _, v := range s.servers {
+		// 开辟 goroutine 运行服务
 		go func(server *gracefulServer) {
 			s.serverCount.Add(1)
 			var err error
+			// 运行服务
 			if server.isHttps {
 				err = server.ListenAndServeTLS(s.config.HTTPSCertPath, s.config.HTTPSKeyPath, s.config.TLSConfig)
 			} else {

@@ -161,6 +161,7 @@ func (g *RouterGroup) Bind(handlerOrObject ...interface{}) *RouterGroup {
 			originValueAndKind = utils.OriginValueAndKind(item)
 		)
 
+		// 判断是不是函数或者结构体
 		switch originValueAndKind.OriginKind {
 		case reflect.Func, reflect.Struct:
 			group = group.preBindToLocalArray(

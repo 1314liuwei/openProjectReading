@@ -58,6 +58,7 @@ func RestartAllServer(ctx context.Context, newExeFilePath ...string) error {
 	if !gracefulEnabled {
 		return gerror.NewCode(gcode.CodeInvalidOperation, "graceful reload feature is disabled")
 	}
+	// 服务操作加锁，避免重复执行
 	serverActionLocker.Lock()
 	defer serverActionLocker.Unlock()
 	// 检查当前进程状态
@@ -120,11 +121,14 @@ func forkReloadProcess(ctx context.Context, newExeFilePath ...string) error {
 	var (
 		path = os.Args[0]
 	)
+	// 执行程序路径
 	if len(newExeFilePath) > 0 {
 		path = newExeFilePath[0]
 	}
 	var (
-		p   = gproc.NewProcess(path, os.Args, os.Environ())
+		// 创建子进程：执行程序，执行参数，环境变量
+		p = gproc.NewProcess(path, os.Args, os.Environ())
+		// 获取所有服务
 		sfm = getServerFdMap()
 	)
 	for name, m := range sfm {
@@ -133,20 +137,25 @@ func forkReloadProcess(ctx context.Context, newExeFilePath ...string) error {
 				s := ""
 				for _, item := range gstr.SplitAndTrim(fdv, ",") {
 					array := strings.Split(item, "#")
+					// 文件描述符
 					fd := uintptr(gconv.Uint(array[1]))
 					if fd > 0 {
+						// 将文件描述符加入进程的额外文件
 						s += fmt.Sprintf("%s#%d,", array[0], 3+len(p.ExtraFiles))
 						p.ExtraFiles = append(p.ExtraFiles, os.NewFile(fd, ""))
 					} else {
 						s += fmt.Sprintf("%s#%d,", array[0], 0)
 					}
 				}
+				// 重设 sfm
 				sfm[name][fdk] = strings.TrimRight(s, ",")
 			}
 		}
 	}
 	buffer, _ := gjson.Encode(sfm)
+	// 添加进程的环境变量
 	p.Env = append(p.Env, adminActionReloadEnvKey+"="+string(buffer))
+	// 启动子进程
 	if _, err := p.Start(); err != nil {
 		glog.Errorf(
 			ctx,
@@ -212,6 +221,7 @@ func bufferToServerFdMap(buffer []byte) map[string]listenerFdMap {
 
 // restartWebServers restarts all servers.
 func restartWebServers(ctx context.Context, signal string, newExeFilePath ...string) error {
+	// 设置当前进程状态
 	serverProcessStatus.Set(adminActionRestarting)
 	if runtime.GOOS == "windows" {
 		if len(signal) > 0 {
@@ -223,8 +233,11 @@ func restartWebServers(ctx context.Context, signal string, newExeFilePath ...str
 		} else {
 			// Controlled by web page.
 			// It should ensure the response wrote to client and then close all servers gracefully.
+			// 父进程处理未处理完的请求，并设置超时
 			gtimer.SetTimeout(ctx, time.Second, func(ctx context.Context) {
+				// 关闭父进程
 				forceCloseWebServers(ctx)
+				// 开启子进程
 				if err := forkRestartProcess(ctx, newExeFilePath...); err != nil {
 					intlog.Error(ctx, err)
 				}

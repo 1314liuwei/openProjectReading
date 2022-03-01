@@ -50,8 +50,10 @@ func (p *utilAdmin) Restart(r *Request) {
 		err error
 	)
 	// Custom start binary path when this process exits.
+	// 指定执行程序
 	path := r.GetQuery("newExeFilePath").String()
 	if path == "" {
+		// 当前运行程序的位置
 		path = gfile.SelfPath()
 	}
 	if len(path) > 0 {

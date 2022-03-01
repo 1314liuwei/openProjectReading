@@ -28,10 +28,12 @@ type Process struct {
 
 // NewProcess creates and returns a new Process.
 func NewProcess(path string, args []string, environment ...[]string) *Process {
+	// 环境变量
 	env := os.Environ()
 	if len(environment) > 0 {
 		env = append(env, environment[0]...)
 	}
+	// 创建子进程
 	process := &Process{
 		Manager: nil,
 		PPid:    os.Getpid(),
@@ -45,13 +47,16 @@ func NewProcess(path string, args []string, environment ...[]string) *Process {
 			ExtraFiles: make([]*os.File, 0),
 		},
 	}
+	// 设置子进程的执行路径
 	process.Dir, _ = os.Getwd()
 	if len(args) > 0 {
 		// Exclude of current binary path.
+		// 除去执行程序本身
 		start := 0
 		if strings.EqualFold(path, args[0]) {
 			start = 1
 		}
+		// 设置子进程的执行参数
 		process.Args = append(process.Args, args[start:]...)
 	}
 	return process
@@ -68,6 +73,7 @@ func (p *Process) Start() (int, error) {
 	if p.Process != nil {
 		return p.Pid(), nil
 	}
+	// 将pid加入环境变量，用于判断当前进程是否是子进程
 	p.Env = append(p.Env, fmt.Sprintf("%s=%d", envKeyPPid, p.PPid))
 	if err := p.Cmd.Start(); err == nil {
 		if p.Manager != nil {

@@ -57,6 +57,7 @@ func PPidOS() int {
 // IsChild checks and returns whether current process is a child process.
 // A child process is forked by another gproc process.
 func IsChild() bool {
+	// 从环境变量中取出当前进程pid，该值会在创建子进程时设置
 	ppidValue := os.Getenv(envKeyPPid)
 	return ppidValue != "" && ppidValue != "0"
 }

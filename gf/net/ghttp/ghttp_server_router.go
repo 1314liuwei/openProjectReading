@@ -102,6 +102,7 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	}
 
 	// Change the registered route according meta info from its request structure.
+	// (ctx context.Context, req XXXRequest) 类型
 	if handler.Info.Type != nil && handler.Info.Type.NumIn() == 2 {
 		var (
 			objectReq = reflect.New(handler.Info.Type.In(1))
@@ -118,8 +119,8 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	}
 
 	// Prefix for URI feature.
-	// 匹配的路由
 	if prefix != "" {
+		// 将 uri 拼接上前缀
 		uri = prefix + "/" + strings.TrimLeft(uri, "/")
 	}
 

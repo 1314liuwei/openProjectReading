@@ -52,10 +52,10 @@ func (s *Server) BindMiddlewareDefault(handlers ...HandlerFunc) {
 	for _, handler := range handlers {
 		s.setHandler(ctx, setHandlerInput{
 			Prefix:  "",
-			Pattern: defaultMiddlewarePattern,
+			Pattern: defaultMiddlewarePattern, // 匹配任意路由
 			HandlerItem: &handlerItem{
 				Type: HandlerTypeMiddleware,
-				Name: gdebug.FuncPath(handler),
+				Name: gdebug.FuncPath(handler), // 通过反射获取函数名称
 				Info: handlerFuncInfo{
 					Func: handler,
 					Type: reflect.TypeOf(handler),

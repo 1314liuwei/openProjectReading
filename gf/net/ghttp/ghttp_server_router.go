@@ -84,13 +84,17 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 		handler = in.HandlerItem
 	)
 	if handler.Name == "" {
+		// 通过反射获取函数名
 		handler.Name = runtime.FuncForPC(handler.Info.Value.Pointer()).Name()
 	}
+	// handler ID 递增 1
 	handler.Id = handlerIdGenerator.Add(1)
+	// 所在代码行，debug 时使用
 	if handler.Source == "" {
 		_, file, line := gdebug.CallerWithFilter([]string{utils.StackFilterKeyForGoFrame})
 		handler.Source = fmt.Sprintf(`%s:%d`, file, line)
 	}
+	// 解析匹配模式
 	domain, method, uri, err := s.parsePattern(pattern)
 	if err != nil {
 		s.Logger().Fatalf(ctx, `invalid pattern "%s", %+v`, pattern, err)
@@ -114,6 +118,7 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	}
 
 	// Prefix for URI feature.
+	// 匹配的路由
 	if prefix != "" {
 		uri = prefix + "/" + strings.TrimLeft(uri, "/")
 	}
@@ -125,6 +130,7 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 
 	// Repeated router checks, this feature can be disabled by server configuration.
 	routerKey := s.routerMapKey(handler.HookName, method, uri, domain)
+	// 是否覆盖重复路由
 	if !s.config.RouteOverWrite {
 		switch handler.Type {
 		case HandlerTypeHandler, HandlerTypeObject:

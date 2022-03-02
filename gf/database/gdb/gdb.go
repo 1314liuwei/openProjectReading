@@ -172,6 +172,7 @@ type DB interface {
 }
 
 // Core is the base struct for database management.
+// Core 实现了部分 DB 的方法，同时继承了 DB 的所有方法
 type Core struct {
 	db     DB              // DB interface object.
 	ctx    context.Context // Context for chaining operation only. Do not set a default value in Core initialization.
@@ -206,6 +207,7 @@ type DoCommitOutput struct {
 }
 
 // Driver is the interface for integrating sql drivers into package gdb.
+// Driver 实现了部分 DB的方法，加上 Core 实现的方法就实现了 DB 接口
 type Driver interface {
 	// New creates and returns a database object for specified database server.
 	New(core *Core, node *ConfigNode) (DB, error)
@@ -319,6 +321,7 @@ var (
 	instances = gmap.NewStrAnyMap(true)
 
 	// driverMap manages all custom registered driver.
+	// 支持的数据库驱动
 	driverMap = map[string]Driver{
 		DriverNameMysql:  &DriverMysql{},
 		DriverNameMssql:  &DriverMssql{},
@@ -398,6 +401,7 @@ func NewByGroup(group ...string) (db DB, err error) {
 }
 
 // doNewByNode creates and returns an ORM object with given configuration node and group name.
+// 获取数据库连接对象
 func doNewByNode(node ConfigNode, group string) (db DB, err error) {
 	c := &Core{
 		group:  group,

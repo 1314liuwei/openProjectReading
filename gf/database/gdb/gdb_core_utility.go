@@ -66,7 +66,7 @@ func (c *Core) QuoteString(s string) string {
 // "user u, user_detail ut",
 // "user as u, user_detail as ut".
 //
-// Note that, this will automatically checks the table prefix whether already added,
+// Note that, this will automatically check the table prefix whether already added,
 // if true it does nothing to the table name, or else adds the prefix to the table name.
 func (c *Core) QuotePrefixTableName(table string) string {
 	charLeft, charRight := c.db.GetChars()

@@ -53,6 +53,7 @@ func (d *DriverMssql) Open(config *ConfigNode) (db *sql.DB, err error) {
 		)
 	}
 	intlog.Printf(d.GetCtx(), "Open: %s", source)
+	// 获取数据库连接
 	if db, err = sql.Open(underlyingDriverName, source); err != nil {
 		err = gerror.WrapCodef(
 			gcode.CodeDbOperationError, err,

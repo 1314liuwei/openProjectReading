@@ -28,6 +28,7 @@ const (
 
 // Database returns an instance of database ORM object with specified configuration group name.
 // Note that it panics if any error occurs duration instance creating.
+// 获取数据库连接
 func Database(name ...string) gdb.DB {
 	var (
 		ctx   = context.Background()
@@ -59,7 +60,9 @@ func Database(name ...string) gdb.DB {
 				err            error
 				configFilePath string
 			)
+			// 从自定义配置文件适配器获取配置文件
 			if fileConfig, ok := Config().GetAdapter().(*gcfg.AdapterFile); ok {
+				// 文件路径为空时 panic
 				if configFilePath, _ = fileConfig.GetFilePath(); configFilePath == "" {
 					var (
 						exampleFileName       = "config.example.toml"

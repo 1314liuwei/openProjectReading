@@ -89,6 +89,7 @@ const (
 //    db.Model("user", "u")
 // 3. Model name with sub-query:
 //    db.Model("? AS a, ? AS b", subQuery1, subQuery2)
+// 返回模型
 func (c *Core) Model(tableNameQueryOrStruct ...interface{}) *Model {
 	var (
 		tableStr  string

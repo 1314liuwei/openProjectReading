@@ -1,15 +1,21 @@
 package main
 
 import (
+	"github.com/gogf/gf/v2/debug/gdebug"
 	"github.com/gogf/gf/v2/errors/gcode"
 	"github.com/gogf/gf/v2/errors/gerror"
 	"github.com/gogf/gf/v2/frame/g"
+	"github.com/gogf/gf/v2/net/ghttp"
 	"github.com/gogf/gf/v2/text/gregex"
+	"github.com/gogf/gf/v2/text/gstr"
 	"strings"
 )
 
-func TestFunction() {
+type Test struct {
+}
 
+func (t Test) TestFunction() {
+	g.Dump(gdebug.CallerWithFilter([]string{"github.com/gogf/gf/"}))
 }
 
 func parsePattern(pattern string) (domain, method, path string, err error) {
@@ -37,8 +43,64 @@ func parsePattern(pattern string) (domain, method, path string, err error) {
 	return
 }
 
+func patternToRegular(rule string) (regular string, names []string) {
+	if len(rule) < 2 {
+		return rule, nil
+	}
+	regular = "^"
+	array := strings.Split(rule[1:], "/")
+	for _, v := range array {
+		if len(v) == 0 {
+			continue
+		}
+		switch v[0] {
+		case ':':
+			if len(v) > 1 {
+				regular += `/([^/]+)`
+				names = append(names, v[1:])
+			} else {
+				regular += `/[^/]+`
+			}
+		case '*':
+			if len(v) > 1 {
+				regular += `/{0,1}(.*)`
+				names = append(names, v[1:])
+			} else {
+				regular += `/{0,1}.*`
+			}
+		default:
+			// Special chars replacement.
+			v = gstr.ReplaceByMap(v, map[string]string{
+				`.`: `\.`,
+				`+`: `\+`,
+				`*`: `.*`,
+			})
+			s, _ := gregex.ReplaceStringFunc(`\{[\w\.\-]+\}`, v, func(s string) string {
+				names = append(names, s[1:len(s)-1])
+				return `([^/]+)`
+			})
+			if strings.EqualFold(s, v) {
+				regular += "/" + v
+			} else {
+				regular += "/" + s
+			}
+		}
+	}
+	regular += `$`
+	return
+}
+
 func main() {
-	domain, method, uri, err := parsePattern("/*")
-	g.Dump(domain, method, uri, err)
-	g.Dump(strings.TrimLeft(uri, "/"))
+	s := g.Server()
+	s.Use(ghttp.MiddlewareHandlerResponse)
+	s.BindHandler("/:name", func(r *ghttp.Request) {
+		r.Response.Write("Hello world")
+	})
+
+	s.Group("/api", func(group *ghttp.RouterGroup) {
+		group.GET("/name", func(r *ghttp.Request) {
+			r.Response.Write("Hello")
+		})
+	})
+	s.Run()
 }

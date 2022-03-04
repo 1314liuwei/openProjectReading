@@ -56,6 +56,7 @@ func (s *Server) handlePreBindItems(ctx context.Context) {
 	if len(preBindItems) == 0 {
 		return
 	}
+	// 从 preBindItems 取出路由函数进行真正的加载
 	for _, item := range preBindItems {
 		if item.bound {
 			continue
@@ -86,6 +87,7 @@ func (s *Server) Group(prefix string, groups ...func(group *RouterGroup)) *Route
 	}
 	if len(groups) > 0 {
 		for _, v := range groups {
+			// 将分组路由加载到 preBindItems
 			v(group)
 		}
 	}
@@ -106,6 +108,7 @@ func (d *Domain) Group(prefix string, groups ...func(group *RouterGroup)) *Route
 		prefix: prefix,
 	}
 	if len(groups) > 0 {
+		// 将分组路由加载到 preBindItems
 		for _, nestedGroup := range groups {
 			nestedGroup(routerGroup)
 		}
@@ -262,6 +265,7 @@ func (g *RouterGroup) Middleware(handlers ...HandlerFunc) *RouterGroup {
 }
 
 // preBindToLocalArray adds the route registering parameters to internal variable array for lazily registering feature.
+// 将路由加载到 preBindItems 中，在执行的时候再真正加载
 func (g *RouterGroup) preBindToLocalArray(bindType string, pattern string, object interface{}, params ...interface{}) *RouterGroup {
 	_, file, line := gdebug.CallerWithFilter([]string{utils.StackFilterKeyForGoFrame})
 	preBindItems = append(preBindItems, &preBindItem{

@@ -102,17 +102,21 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	}
 
 	// Change the registered route according meta info from its request structure.
-	// (ctx context.Context, req XXXRequest) 类型
+	// (ctx context.Context, req XXXRequest) 类型函数
 	if handler.Info.Type != nil && handler.Info.Type.NumIn() == 2 {
 		var (
+			// req 参数
 			objectReq = reflect.New(handler.Info.Type.In(1))
 		)
+		// path 标签
 		if v := gmeta.Get(objectReq, goai.TagNamePath); !v.IsEmpty() {
 			uri = v.String()
 		}
+		// method 标签
 		if v := gmeta.Get(objectReq, goai.TagNameMethod); !v.IsEmpty() {
 			method = v.String()
 		}
+		// domain 标签
 		if v := gmeta.Get(objectReq, goai.TagNameDomain); !v.IsEmpty() {
 			domain = v.String()
 		}
@@ -150,8 +154,9 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 		Uri:      uri,
 		Domain:   domain,
 		Method:   strings.ToUpper(method),
-		Priority: strings.Count(uri[1:], "/"),
+		Priority: strings.Count(uri[1:], "/"), //根据斜杠数量确定优先级
 	}
+	// 将路由解析为正则表达式
 	handler.Router.RegRule, handler.Router.RegNames = s.patternToRegular(uri)
 
 	if _, ok := s.serveTree[domain]; !ok {
@@ -184,6 +189,7 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 			continue
 		}
 		// Check if it's a fuzzy node.
+		// 判断当前节点是否是模糊匹配节点
 		if gregex.IsMatchString(`^[:\*]|\{[\w\.\-]+\}|\*`, part) {
 			part = "*fuzz"
 			// If it's a fuzzy node, it creates a "*list" item - which is a list - in the hash map.

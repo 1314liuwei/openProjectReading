@@ -101,6 +101,9 @@ func main() {
 		group.GET("/name", func(r *ghttp.Request) {
 			r.Response.Write("Hello")
 		})
+		group.GET("/:id", func(r *ghttp.Request) {
+			r.Response.Write("Hello")
+		})
 	})
 	s.Run()
 }

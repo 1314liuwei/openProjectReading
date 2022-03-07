@@ -58,6 +58,7 @@ func (s *Server) handlePreBindItems(ctx context.Context) {
 	}
 	// 从 preBindItems 取出路由函数进行真正的加载
 	for _, item := range preBindItems {
+		// 路由是否被绑定
 		if item.bound {
 			continue
 		}

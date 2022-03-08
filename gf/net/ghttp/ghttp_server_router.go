@@ -102,7 +102,7 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	}
 
 	// Change the registered route according meta info from its request structure.
-	// (ctx context.Context, req XXXRequest) 类型函数
+	// 处理 (ctx context.Context, req XXXRequest) 类型路由函数
 	if handler.Info.Type != nil && handler.Info.Type.NumIn() == 2 {
 		var (
 			// req 参数
@@ -159,6 +159,7 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	// 将路由解析为正则表达式
 	handler.Router.RegRule, handler.Router.RegNames = s.patternToRegular(uri)
 
+	// 绑定域名，默认为 default
 	if _, ok := s.serveTree[domain]; !ok {
 		s.serveTree[domain] = make(map[string]interface{})
 	}
@@ -166,9 +167,11 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	// There may be multiple lists adding into this array when searching from root to leaf.
 	lists := make([]*glist.List, 0)
 	array := ([]string)(nil)
+	// 判断是否是根路由
 	if strings.EqualFold("/", uri) {
 		array = []string{"/"}
 	} else {
+		// 对于路由分割为多个节点
 		array = strings.Split(uri[1:], "/")
 	}
 	// Multilayer hash table:
@@ -182,7 +185,9 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	//    priorities from high to low.
 	// 3. There may be repeated router items in the router lists. The lists' priorities
 	//    from root to leaf are from low to high.
+	// 取出域名路由哈希表
 	p := s.serveTree[domain]
+	// 对路由节点进行处理
 	for i, part := range array {
 		// Ignore empty URI part, like: /user//index
 		if part == "" {
@@ -231,6 +236,7 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 			item = e.Value.(*handlerItem)
 			// Checks the priority whether inserting the route item before current item,
 			// which means it has higher priority.
+			// 将高优先级的路由处理函数放在前面
 			if s.compareRouterPriority(handler, item) {
 				l.InsertBefore(e, handler)
 				pushed = true

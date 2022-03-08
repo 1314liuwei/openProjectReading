@@ -98,6 +98,8 @@ func main() {
 	})
 
 	s.Group("/api", func(group *ghttp.RouterGroup) {
+		group.Middleware(ghttp.MiddlewareCORS)
+
 		group.GET("/name", func(r *ghttp.Request) {
 			r.Response.Write("Hello")
 		})

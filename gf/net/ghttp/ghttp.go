@@ -74,6 +74,7 @@ type (
 
 	// handlerItem is the registered handler for route handling,
 	// including middleware and hook functions.
+	// 所有的路由处理函数都会转换为该结构体
 	handlerItem struct {
 		Id         int             // Unique handler item id mark.
 		Name       string          // Handler name, which is automatically retrieved from runtime stack when registered.

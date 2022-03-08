@@ -245,6 +245,7 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 		}
 	end:
 		// Just push back in default.
+		// 将路由函数放在 list 末尾
 		if !pushed {
 			l.PushBack(handler)
 		}
@@ -261,9 +262,11 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	switch handler.Type {
 	case HandlerTypeHandler, HandlerTypeObject:
 		// Overwrite the route.
+		// 路由处理函数则覆盖原有的路由函数
 		s.routesMap[routerKey] = []registeredRouteItem{routeItem}
 	default:
 		// Append the route.
+		// 其他类型则追加路由处理函数
 		s.routesMap[routerKey] = append(s.routesMap[routerKey], routeItem)
 	}
 }

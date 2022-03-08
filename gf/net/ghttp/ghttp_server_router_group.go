@@ -88,7 +88,7 @@ func (s *Server) Group(prefix string, groups ...func(group *RouterGroup)) *Route
 	}
 	if len(groups) > 0 {
 		for _, v := range groups {
-			// 将分组路由加载到 preBindItems
+			// 执行分组路由回调函数，最终将路由处理函数加载到 preBindItems 哈希表
 			v(group)
 		}
 	}
@@ -109,7 +109,7 @@ func (d *Domain) Group(prefix string, groups ...func(group *RouterGroup)) *Route
 		prefix: prefix,
 	}
 	if len(groups) > 0 {
-		// 将分组路由加载到 preBindItems
+		// 执行分组路由回调函数，最终将路由处理函数加载到 preBindItems 哈希表
 		for _, nestedGroup := range groups {
 			nestedGroup(routerGroup)
 		}
@@ -133,6 +133,7 @@ func (g *RouterGroup) Group(prefix string, groups ...func(group *RouterGroup)) *
 		copy(group.middleware, g.middleware)
 	}
 	if len(groups) > 0 {
+		// 执行分组路由回调函数，最终将路由处理函数加载到 preBindItems 哈希表
 		for _, v := range groups {
 			v(group)
 		}
@@ -161,8 +162,8 @@ func (g *RouterGroup) Bind(handlerOrObject ...interface{}) *RouterGroup {
 	)
 	for _, v := range handlerOrObject {
 		var (
-			item               = v
-			originValueAndKind = utils.OriginValueAndKind(item)
+			item               = v                              // 防止 range 陷阱
+			originValueAndKind = utils.OriginValueAndKind(item) // 获取 handlerObject 的原始属性
 		)
 
 		// 判断是不是函数或者结构体
@@ -292,6 +293,7 @@ func (g *RouterGroup) getPrefix() string {
 }
 
 // doBindRoutersToServer does really register for the group.
+// 将路由处理函数真正加载到 group
 func (g *RouterGroup) doBindRoutersToServer(ctx context.Context, item *preBindItem) *RouterGroup {
 	var (
 		bindType = item.bindType
@@ -331,6 +333,7 @@ func (g *RouterGroup) doBindRoutersToServer(ctx context.Context, item *preBindIt
 	}
 	switch bindType {
 	case groupBindTypeHandler:
+		// 函数形式路由
 		if reflect.ValueOf(object).Kind() == reflect.Func {
 			funcInfo, err := g.server.checkAndCreateFuncInfo(object, "", "", "")
 			if err != nil {
@@ -344,13 +347,16 @@ func (g *RouterGroup) doBindRoutersToServer(ctx context.Context, item *preBindIt
 				Middleware: g.middleware,
 				Source:     source,
 			}
+			// 绑定路由函数
 			if g.domain != nil {
 				g.domain.doBindHandler(ctx, in)
 			} else {
 				g.server.doBindHandler(ctx, in)
 			}
 		} else {
+			// 结构体形式的路由函数
 			if len(extras) > 0 {
+				// 判断有无多个方法
 				if gstr.Contains(extras[0], ",") {
 					in := doBindObjectInput{
 						Prefix:     prefix,

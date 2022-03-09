@@ -77,6 +77,7 @@ type setHandlerInput struct {
 // The router tree can be treated as a multilayer hash table, please refer to the comment in following codes.
 // This function is called during server starts up, which cares little about the performance. What really cares
 // is the well-designed router storage structure for router searching when the request is under serving.
+// 所有路由处理函数都会调用到这个函数
 func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	var (
 		prefix  = in.Prefix

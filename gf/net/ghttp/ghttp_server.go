@@ -174,7 +174,7 @@ func (s *Server) Start() error {
 		}
 	}
 	// Register group routes.
-	// 检查所有路由
+	// 绑定路由函数
 	s.handlePreBindItems(ctx)
 
 	// Server process initialization, which can only be initialized once.

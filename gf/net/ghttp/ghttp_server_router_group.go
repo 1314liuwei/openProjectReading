@@ -63,12 +63,14 @@ func (s *Server) handlePreBindItems(ctx context.Context) {
 			continue
 		}
 		// Handle the items of current server.
+		// 判断当前路由函数是否是属于当前 server 的
 		if item.group.server != nil && item.group.server != s {
 			continue
 		}
 		if item.group.domain != nil && item.group.domain.server != s {
 			continue
 		}
+		// 绑定路由函数到 server 上
 		item.group.doBindRoutersToServer(ctx, item)
 		item.bound = true
 	}
@@ -205,6 +207,8 @@ func (g *RouterGroup) Map(m map[string]interface{}) {
 	}
 }
 
+// 先 Clone 再绑定路由的原因：在路由函数中使用当前状态的 group，避免后续状态改变从而影响前面的路由
+
 // GET registers a http handler to given route pattern and http method: GET.
 func (g *RouterGroup) GET(pattern string, object interface{}, params ...interface{}) *RouterGroup {
 	return g.Clone().preBindToLocalArray(groupBindTypeHandler, "GET:"+pattern, object, params...)
@@ -262,6 +266,7 @@ func (g *RouterGroup) Hook(pattern string, hook string, handler HandlerFunc) *Ro
 
 // Middleware binds one or more middleware to the router group.
 func (g *RouterGroup) Middleware(handlers ...HandlerFunc) *RouterGroup {
+	// 将 中间件添加到当前 routerGroup
 	g.middleware = append(g.middleware, handlers...)
 	return g
 }
@@ -281,10 +286,12 @@ func (g *RouterGroup) preBindToLocalArray(bindType string, pattern string, objec
 	return g
 }
 
-// getPrefix returns the route prefix of the group, which recursively retrieves its parent's prefixo.
+// getPrefix returns the route prefix of the group, which recursively retrieves its parent's prefix.
+// 获取完整前缀
 func (g *RouterGroup) getPrefix() string {
 	prefix := g.prefix
 	parent := g.parent
+	// 拼接前缀
 	for parent != nil {
 		prefix = parent.prefix + prefix
 		parent = parent.parent
@@ -303,7 +310,9 @@ func (g *RouterGroup) doBindRoutersToServer(ctx context.Context, item *preBindIt
 		source   = item.source
 	)
 	prefix := g.getPrefix()
+
 	// Route check.
+	// 重新格式化 pattern
 	if len(prefix) > 0 {
 		domain, method, path, err := g.server.parsePattern(pattern)
 		if err != nil {
@@ -316,6 +325,7 @@ func (g *RouterGroup) doBindRoutersToServer(ctx context.Context, item *preBindIt
 		if bindType == groupBindTypeRest {
 			pattern = path
 		} else {
+			// 获取 handlerKey
 			pattern = g.server.serveHandlerKey(
 				method, path, domain,
 			)

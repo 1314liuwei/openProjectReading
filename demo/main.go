@@ -93,6 +93,8 @@ func patternToRegular(rule string) (regular string, names []string) {
 func main() {
 	s := g.Server()
 	s.Use(ghttp.MiddlewareHandlerResponse)
+
+	s.BindObjectRest()
 	s.BindHandler("/:name", func(r *ghttp.Request) {
 		r.Response.Write("Hello world")
 	})

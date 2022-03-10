@@ -94,8 +94,23 @@ func main() {
 	s := g.Server()
 	s.Use(ghttp.MiddlewareHandlerResponse)
 
-	s.BindObjectRest()
 	s.BindHandler("/:name", func(r *ghttp.Request) {
+		r.Response.Write("Hello world")
+	})
+
+	s.BindHandler("/n1/n2", func(r *ghttp.Request) {
+		r.Response.Write("Hello world")
+	})
+
+	s.BindHandler("/n1/:n2", func(r *ghttp.Request) {
+		r.Response.Write("Hello world")
+	})
+
+	s.BindHandler("/:n1/:n2", func(r *ghttp.Request) {
+		r.Response.Write("Hello world")
+	})
+
+	s.BindHandler("/{n1}--{n3}/:n2", func(r *ghttp.Request) {
 		r.Response.Write("Hello world")
 	})
 

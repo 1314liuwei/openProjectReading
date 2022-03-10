@@ -233,7 +233,7 @@ func (s *Server) Start() error {
 		}
 	}
 	// Check the group routes again.
-	// 再次检查路由
+	// 再次对路由函数进行绑定
 	s.handlePreBindItems(ctx)
 
 	// If there's no route registered  and no static service enabled,

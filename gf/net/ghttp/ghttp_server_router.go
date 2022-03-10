@@ -186,6 +186,10 @@ func (s *Server) setHandler(ctx context.Context, in setHandlerInput) {
 	//    priorities from high to low.
 	// 3. There may be repeated router items in the router lists. The lists' priorities
 	//    from root to leaf are from low to high.
+
+	// 路由处理按照节点进行分层，每一层由 *list、节点(模糊节点*fuzz、具体节点xx、字段匹配节点)组成
+	// *list 里面包含着当层的节点路由函数，按照优先级进行排序
+
 	// 取出域名路由哈希表
 	p := s.serveTree[domain]
 	// 对路由节点进行处理

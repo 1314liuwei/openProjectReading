@@ -222,6 +222,7 @@ func (s *Server) Start() error {
 	}
 
 	// Default HTTP handler.
+	// 设置 HTTP Server 路由处理函数 为 s.ServeHTTP
 	if s.config.Handler == nil {
 		s.config.Handler = s
 	}
@@ -584,6 +585,7 @@ func (s *Server) startServer(fdMap listenerFdMap) {
 			} else {
 				err = server.ListenAndServe()
 			}
+
 			// The process exits if the server is closed with none closing error.
 			if err != nil && !strings.EqualFold(http.ErrServerClosed.Error(), err.Error()) {
 				s.Logger().Fatalf(ctx, `%+v`, err)

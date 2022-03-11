@@ -28,6 +28,8 @@ import (
 // it's called by am already created new goroutine from http.Server.
 //
 // This function also make serve implementing the interface of http.Handler.
+// 该函数实现了 http.Handler 接口，该函数是路由处理的核心
+// net/http 包中默认使用的是 mux.Handle
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Max body size limit.
 	if s.config.ClientMaxBodySize > 0 {
@@ -43,7 +45,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Create a new request object.
 	request := newRequest(s, r, w)
-
+	// 处理 request 异常
 	defer func() {
 		request.LeaveTime = gtime.TimestampMilli()
 		// error log handling.
@@ -100,6 +102,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Search the dynamic service handler.
+	// 从缓存中取出 handlers
 	request.handlers, request.hasHookHandler, request.hasServeHandler = s.getHandlersWithCache(request)
 
 	// Check the service type static or dynamic for current request.

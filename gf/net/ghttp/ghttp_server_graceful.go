@@ -67,6 +67,7 @@ func (s *Server) newHttpServer(address string) *http.Server {
 
 // ListenAndServe starts listening on configured address.
 func (s *gracefulServer) ListenAndServe() error {
+	// 获取监听对象
 	ln, err := s.getNetListener()
 	if err != nil {
 		return err
@@ -77,7 +78,7 @@ func (s *gracefulServer) ListenAndServe() error {
 }
 
 // Fd retrieves and returns the file descriptor of current server.
-// It is available ony in *nix like operation systems like: linux, unix, darwin.
+// It is available ony in *nix like operation system like: linux, unix, darwin.
 func (s *gracefulServer) Fd() uintptr {
 	if s.rawListener != nil {
 		file, err := s.rawListener.(*net.TCPListener).File()
@@ -147,6 +148,7 @@ func (s *gracefulServer) getProto() string {
 }
 
 // doServe starts the serving.
+// 运行服务
 func (s *gracefulServer) doServe(ctx context.Context) error {
 	action := "started"
 	if s.fd != 0 {

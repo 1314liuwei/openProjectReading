@@ -94,26 +94,6 @@ func main() {
 	s := g.Server()
 	s.Use(ghttp.MiddlewareHandlerResponse)
 
-	s.BindHandler("/:name", func(r *ghttp.Request) {
-		r.Response.Write("Hello world")
-	})
-
-	s.BindHandler("/n1/n2", func(r *ghttp.Request) {
-		r.Response.Write("Hello world")
-	})
-
-	s.BindHandler("/n1/:n2", func(r *ghttp.Request) {
-		r.Response.Write("Hello world")
-	})
-
-	s.BindHandler("/:n1/:n2", func(r *ghttp.Request) {
-		r.Response.Write("Hello world")
-	})
-
-	s.BindHandler("/{n1}--{n3}/:n2", func(r *ghttp.Request) {
-		r.Response.Write("Hello world")
-	})
-
 	s.Group("/api", func(group *ghttp.RouterGroup) {
 		group.Middleware(ghttp.MiddlewareCORS)
 
@@ -124,5 +104,7 @@ func main() {
 			r.Response.Write("Hello")
 		})
 	})
+
+	s.SetPort(3456)
 	s.Run()
 }

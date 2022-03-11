@@ -145,6 +145,7 @@ func (s *Server) nameToUri(name string) string {
 	}
 }
 
+// 判断路由函数是否符合规范
 func (s *Server) checkAndCreateFuncInfo(f interface{}, pkgPath, structName, methodName string) (info handlerFuncInfo, err error) {
 	handlerFunc, ok := f.(HandlerFunc)
 	if !ok {

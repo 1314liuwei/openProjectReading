@@ -318,6 +318,7 @@ func (s *Server) SetConfig(c ServerConfig) error {
 	if len(c.SearchPaths) > 0 {
 		paths := c.SearchPaths
 		c.SearchPaths = []string{}
+
 		for _, v := range paths {
 			s.AddSearchPath(v)
 		}

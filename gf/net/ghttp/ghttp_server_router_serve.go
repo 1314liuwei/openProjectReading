@@ -50,10 +50,13 @@ func (s *Server) getHandlersWithCache(r *Request) (parsedItems []*handlerParsedI
 		}
 	}
 	// Search and cache the router handlers.
+	// 将访问过的路由函数加入缓存中
 	value, err := s.serveCache.GetOrSetFunc(
 		ctx,
+		// handler Key
 		s.serveHandlerKey(method, r.URL.Path, r.GetHost()),
 		func(ctx context.Context) (interface{}, error) {
+			// 获取路由处理函数
 			parsedItems, hasHook, hasServe = s.searchHandlers(method, r.URL.Path, r.GetHost())
 			if parsedItems != nil {
 				return &handlerCacheItem{parsedItems, hasHook, hasServe}, nil
@@ -114,6 +117,7 @@ func (s *Server) searchHandlers(method, path, domain string) (parsedItems []*han
 		}
 		// Make a list array with capacity of 16.
 		lists := make([]*glist.List, 0, 16)
+		// 节点匹配
 		for i, part := range array {
 			// Add all list of each node to the list array.
 			if v, ok := p.(map[string]interface{})["*list"]; ok {
